@@ -30,10 +30,15 @@ const HomeScreen = () => {
   const { products } = useContext(ProductContext);
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
-  const filteredProducts = products.filter((product) =>
-    product.title.toLowerCase().includes(search.toLowerCase())
-  );
+
+
+    const filteredProducts = products.filter(product =>
+    product.title.toLowerCase().includes(search.toLowerCase()) &&
+    (selectedCategory === "" || product.category === selectedCategory)
+    );
+
 
   return (
     <View style={styles.container}>
@@ -72,17 +77,36 @@ const HomeScreen = () => {
         </View>
 
         <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoryList}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoryList}
         >
-          {categories.map((cat, i) => (
-            <TouchableOpacity key={i} style={styles.categoryItem}>
-              <Ionicons name={cat.icon} size={20} />
-              <Text style={styles.categoryText}>{cat.name}</Text>
+        {categories.map((cat, i) => {
+            const isSelected = selectedCategory === cat.name;
+            return (
+            <TouchableOpacity
+                key={i}
+                style={[
+                styles.categoryItem,
+                isSelected && { backgroundColor: "#6C63FF" }
+                ]}
+                onPress={() => {
+                setSelectedCategory(isSelected ? "" : cat.name);
+                }}
+            >
+                <Ionicons
+                name={cat.icon}
+                size={20}
+                color={isSelected ? "#fff" : "#000"}
+                />
+                <Text style={[styles.categoryText, isSelected && { color: "#fff" }]}>
+                {cat.name}
+                </Text>
             </TouchableOpacity>
-          ))}
+            );
+        })}
         </ScrollView>
+
 
         {/* Título Productos fijo */}
         <View style={[styles.sectionHeader, { marginTop: 0, paddingTop: 10,marginBottom: 20 }]}>
