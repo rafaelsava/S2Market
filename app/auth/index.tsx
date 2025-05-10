@@ -3,13 +3,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
 import {
-    Alert,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 const LoginScreen = () => {
@@ -29,8 +29,7 @@ const LoginScreen = () => {
 
     const role = await login(email, password);
     if (role) {
-      console.log("Login exitoso. Rol:", role);
-      router.replace("/"); // Ruta a la home
+      router.replace(`../${role}/`); // Ruta a la home
     } else {
       Alert.alert("Error", "Correo o contraseña incorrectos.");
     }
@@ -45,7 +44,7 @@ const LoginScreen = () => {
       <Text style={styles.title}>Bienvenidos</Text>
       <Text style={styles.subtitle}>Ingresa tus datos para continuar</Text>
 
-      <Text style={styles.label}>Usuario</Text>
+      <Text style={styles.label}>Email</Text>
       <TextInput
         style={styles.input}
         placeholder="Correo electrónico"

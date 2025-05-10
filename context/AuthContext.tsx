@@ -1,11 +1,11 @@
 import { auth, db } from "@/utils/FirebaseConfig";
 import {
-    createUserWithEmailAndPassword,
-    User as FirebaseUser,
-    onAuthStateChanged,
-    signInWithEmailAndPassword,
-    signOut,
-    updateProfile,
+  createUserWithEmailAndPassword,
+  User as FirebaseUser,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { createContext, useEffect, useState } from "react";
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }: any) => {
         }
       }
     } catch (error) {
-      console.error("Error al iniciar sesión:", error);
+      console.log("Error al iniciar sesión:", error);
     }
     return null;
   };
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }: any) => {
 
       return true;
     } catch (error) {
-      console.error("Error al registrar:", error);
+      console.log("Error al registrar:", error);
       return false;
     }
   };
