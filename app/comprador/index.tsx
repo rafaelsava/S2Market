@@ -1,6 +1,9 @@
+import { AuthContext } from "@/context/AuthContext";
 import { ProductContext } from "@/context/ProductContext";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
+
 import {
     FlatList,
     Image,
@@ -12,6 +15,9 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+
+const router = useRouter();
+
 
 const categories = [
   { name: "Tecnología", icon: "laptop" as const },
@@ -31,6 +37,7 @@ const HomeScreen = () => {
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const{currentUser} = useContext(AuthContext);
 
 
 
@@ -51,7 +58,7 @@ const HomeScreen = () => {
           </View>
         </View>
 
-        <Text style={styles.greeting}>Hola</Text>
+        <Text style={styles.greeting}>Hola, {currentUser?.displayName?.split(" ")[0]} </Text>
         <Text style={styles.subtitle}>Bienvenido a S2Market.</Text>
 
         <View style={styles.searchBox}>
@@ -130,7 +137,11 @@ const HomeScreen = () => {
           paddingHorizontal: 20,
         }}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card}>
+          <TouchableOpacity style={styles.card}
+            onPress={() => router.push({ pathname: "../comprador/product/[id]", params: { id: item.id } })}
+    >
+            
+
             <Image source={{ uri: item.image }} style={styles.cardImage} />
             <Text numberOfLines={1} style={styles.cardTitle}>
               {item.title}
@@ -173,6 +184,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
     marginTop: 20,
+    marginBottom: 4,
   },
   subtitle: {
     color: "#888",
