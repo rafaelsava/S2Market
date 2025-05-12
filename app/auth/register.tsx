@@ -3,12 +3,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
 import {
-    Alert,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const RegisterScreen = () => {
@@ -57,6 +57,17 @@ const RegisterScreen = () => {
         onChangeText={setName}
       />
 
+      
+      <Text style={styles.label}>Email</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Correo electrónico"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+
       <Text style={styles.label}>Contraseña</Text>
       <View style={styles.passwordContainer}>
         <TextInput
@@ -71,15 +82,6 @@ const RegisterScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.label}>Email</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Correo electrónico"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
 
       <View style={styles.roleContainer}>
         <TouchableOpacity
