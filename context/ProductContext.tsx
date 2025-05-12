@@ -1,22 +1,56 @@
-import * as FileSystem from 'expo-file-system';
-import { addDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore';
-import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { db, storage } from '../utils/FirebaseConfig';
-import { AuthContext } from './AuthContext';
+import {
+  addDoc,
+  collection,
+  getDocs,
+  orderBy,
+  query,
+  serverTimestamp,
+} from "firebase/firestore";
+import {
+  getDownloadURL,
+  ref,
+} from "firebase/storage";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { db, storage } from "../utils/FirebaseConfig";
 
-export type Category = 'Ropa' | 'Hogar' | 'Alimentos' | 'Utilidades' | 'Deportes';
+// ===================== Tipos =====================
+
+export type Category =
+  | "Tecnología"
+  | "Libros"
+  | "Ropa"
+  | "Hogar"
+  | "Papelería"
+  | "Deportes"
+  | "Arte"
+  | "Musica"
+  | "Alimentos"
+  | "Otros";
+
+export interface Review {
+  id: string;
+  userId: string;
+  name: string;
+  rating: number;
+  comment: string;
+  createdAt: any; // Timestamp
+}
 
 export interface Product {
   id: string;
+  sellerId: string;
   title: string;
   description: string;
   category: Category;
-  imageUrl: string;
+  image: string;
   price: number;
   stock: number;
-  vendorId: string;
-  vendorName: string;
+  reviews: Review[];
   createdAt: any;
 }
 
@@ -24,69 +58,147 @@ interface ProductContextType {
   products: Product[];
   loading: boolean;
   error: string | null;
-  addProduct: (data: Omit<Product, 'id' | 'vendorId' | 'vendorName' | 'createdAt'> & { imageUri: string }) => Promise<void>;
+  addReview: (productId: string, review: Omit<Review, "id" | "createdAt">) => Promise<void>;
+  addProduct: (product: Omit<Product, "id" | "reviews" | "createdAt">) => Promise<void>;
 }
 
-export const ProductContext = createContext<ProductContextType>({} as any);
-export const useProductsContext = () => useContext(ProductContext);
+// ===================== Contexto =====================
+
+export const ProductContext = createContext<ProductContextType>({
+  products: [],
+  loading: true,
+  error: null,
+  addReview: async () => {},
+  addProduct: async () => {},
+});
+
+export const useProducts = () => useContext(ProductContext);
 
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentUser } = useContext(AuthContext);
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchProducts = async () => {
     try {
-      const snap = await getDocs(collection(db, 'products'));
-      const data = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as Product));
-      setProducts(data);
+      const querySnapshot = await getDocs(collection(db, "products"));
+      const productsData: Product[] = [];
+
+      for (const doc of querySnapshot.docs) {
+        const data = doc.data();
+        const imageRef = ref(storage, data.image);
+        let imageUrl = "";
+        if (data.image) {
+          try {
+            const imageRef = ref(storage, data.image);
+            imageUrl = await getDownloadURL(imageRef);
+          } catch (error) {
+            console.warn(`No se pudo obtener URL de imagen para ${doc.id}:`, error);
+            imageUrl = ""; // o una imagen por defecto si prefieres
+          }
+        }
+
+        const reviewsSnapshot = await getDocs(
+          query(
+            collection(db, "products", doc.id, "reviews"),
+            orderBy("createdAt", "desc")
+          )
+        );
+        const reviews: Review[] = reviewsSnapshot.docs.map((reviewDoc) => ({
+          id: reviewDoc.id,
+          ...reviewDoc.data(),
+        })) as Review[];
+
+        productsData.push({
+          id: doc.id,
+          sellerId: data.sellerId,
+          title: data.title,
+          description: data.description,
+          category: data.category,
+          image: imageUrl,
+          price: data.price,
+          stock: data.stock,
+          reviews,
+          createdAt: data.createdAt,
+        });
+      }
+
+      setProducts(productsData);
     } catch (err: any) {
+      console.error("Error cargando productos:", err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
-  const addProduct = async ({ title, description, category, price, stock, imageUri }: any) => {
-    if (!currentUser) throw new Error('Usuario no autenticado');
-    let downloadUrl: string;
-    // Determinar si es URI local o URL remota
-    if (imageUri.startsWith('file://')) {
-      // Leer local como base64
-      const base64 = await FileSystem.readAsStringAsync(imageUri, {
-        encoding: FileSystem.EncodingType.Base64,
+  // ===================== Añadir Review =====================
+  const addReview = async (
+    productId: string,
+    review: Omit<Review, "id" | "createdAt">
+  ) => {
+    try {
+      const refReviews = collection(db, "products", productId, "reviews");
+      const docRef = await addDoc(refReviews, {
+        ...review,
+        createdAt: serverTimestamp(),
       });
-      const blob = new Blob([Uint8Array.from(atob(base64), c => c.charCodeAt(0))], { type: 'image/jpeg' });
-      const path = `products/${currentUser.uid}/${Date.now()}`;
-      const imgRef = storageRef(storage, path);
-      await uploadBytes(imgRef, blob);
-      downloadUrl = await getDownloadURL(imgRef);
-    } else {
-      // Ya es URL remota, no subimos de nuevo
-      downloadUrl = imageUri;
-    }
 
-    // Guardar documento en Firestore
-    await addDoc(collection(db, 'products'), {
-      title,
-      description,
-      category,
-      price,
-      stock,
-      imageUrl: downloadUrl,
-      vendorId: currentUser.uid,
-      vendorName: currentUser.displayName || '',
-      createdAt: serverTimestamp(),
-    });
-    await fetchProducts();
+      setProducts((prev) =>
+        prev.map((product) =>
+          product.id === productId
+            ? {
+                ...product,
+                reviews: [
+                  {
+                    ...review,
+                    id: docRef.id,
+                    createdAt: new Date(), // temporal
+                  },
+                  ...product.reviews,
+                ],
+              }
+            : product
+        )
+      );
+    } catch (error) {
+      console.error("Error al añadir review:", error);
+    }
+  };
+
+  // ===================== Añadir Producto =====================
+  const addProduct = async (
+    product: Omit<Product, "id" | "reviews" | "createdAt">
+  ): Promise<void> => {
+    try {
+      const docRef = await addDoc(collection(db, "products"), {
+        ...product,
+        createdAt: serverTimestamp(),
+      });
+
+      setProducts((prev) => [
+        {
+          ...product,
+          id: docRef.id,
+          reviews: [],
+          createdAt: new Date(), // temporal
+        },
+        ...prev,
+      ]);
+    } catch (error) {
+      console.error("Error al añadir producto:", error);
+    }
   };
 
   return (
-    <ProductContext.Provider value={{ products, loading, error, addProduct }}>
+    <ProductContext.Provider
+      value={{ products, loading, error, addReview, addProduct }}
+    >
       {children}
     </ProductContext.Provider>
   );
-}
+};

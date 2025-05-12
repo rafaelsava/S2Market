@@ -5,15 +5,15 @@ import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
 
 import {
-    FlatList,
-    Image,
-    Keyboard,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Image,
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const router = useRouter();
@@ -38,6 +38,8 @@ const HomeScreen = () => {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const{currentUser} = useContext(AuthContext);
+
+  console.log("products", products);
 
 
 

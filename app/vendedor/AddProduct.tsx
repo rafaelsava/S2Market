@@ -1,14 +1,36 @@
 import { Picker } from '@react-native-picker/picker';
-import React, { useState } from 'react';
-import { Alert, Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useContext, useState } from 'react';
+import {
+  Alert,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CameraModal from '../../components/CameraModal';
-import { Category, useProductsContext } from '../../context/ProductContext';
+import { AuthContext } from '../../context/AuthContext';
+import { Category, useProducts } from '../../context/ProductContext';
 
-const categories: Category[] = ['Ropa', 'Hogar', 'Alimentos', 'Utilidades', 'Deportes'];
-
+const categories: Category[] = [
+  'Tecnología',
+  'Libros',
+  'Ropa',
+  'Hogar',
+  'Papelería',
+  'Deportes',
+  'Arte',
+  'Musica',
+  'Alimentos',
+  'Otros'
+];
 const AddProduct: React.FC = () => {
-  const { addProduct } = useProductsContext();
+  const { addProduct } = useProducts();
+  const { currentUser } = useContext(AuthContext);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Category>(categories[0]);
@@ -18,19 +40,26 @@ const AddProduct: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleSave = async () => {
+
+    console.log("🧪 Imagen URI capturada:", imageUri); // 👈
+
     if (!title || !description || !price || !stock || !imageUri) {
       return Alert.alert('Error', 'Todos los campos son obligatorios');
     }
+
     try {
+      if (!currentUser?.uid) throw new Error('Usuario no autenticado');
+
       await addProduct({
-          title,
-          description,
-          category,
-          price: parseFloat(price),
-          stock: parseInt(stock, 10),
-          imageUri,
-          imageUrl: ''
+        title,
+        description,
+        category,
+        price: parseFloat(price),
+        stock: parseInt(stock, 10),
+        image: imageUri, // ya es downloadURL
+        sellerId: currentUser.uid,
       });
+
       Alert.alert('Éxito', 'Producto agregado');
     } catch (e: any) {
       Alert.alert('Error', e.message);
@@ -109,6 +138,7 @@ const AddProduct: React.FC = () => {
   );
 };
 
+export default AddProduct;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   form: { padding: 16 },
@@ -126,5 +156,3 @@ const styles = StyleSheet.create({
   saveBtn: { backgroundColor: '#3b82f6', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 24 },
   saveText: { color: '#fff', fontWeight: '600' },
 });
-
-export default AddProduct;
