@@ -1,11 +1,31 @@
 import * as FileSystem from 'expo-file-system';
-import { addDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, getDocs, orderBy, query, serverTimestamp } from 'firebase/firestore';
 import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { db, storage } from '../utils/FirebaseConfig';
 import { AuthContext } from './AuthContext';
 
-export type Category = 'Ropa' | 'Hogar' | 'Alimentos' | 'Utilidades' | 'Deportes';
+// ==== Tipos ==== 
+export type Category =
+  | 'Tecnología'
+  | 'Libros'
+  | 'Ropa'
+  | 'Hogar'
+  | 'Papelería'
+  | 'Deportes'
+  | 'Arte'
+  | 'Musica'
+  | 'Alimentos'
+  | 'Otros';
+
+export interface Review {
+  id: string;
+  userId: string;
+  name: string;
+  rating: number;
+  comment: string;
+  createdAt: any;
+}
 
 export interface Product {
   id: string;
@@ -18,13 +38,20 @@ export interface Product {
   vendorId: string;
   vendorName: string;
   createdAt: any;
+  reviews: Review[];
 }
 
 interface ProductContextType {
   products: Product[];
   loading: boolean;
   error: string | null;
-  addProduct: (data: Omit<Product, 'id' | 'vendorId' | 'vendorName' | 'createdAt'> & { imageUri: string }) => Promise<void>;
+  addProduct: (
+    data: Omit<Product, 'id' | 'vendorId' | 'vendorName' | 'createdAt' | 'reviews'> & { imageUri: string }
+  ) => Promise<void>;
+  addReview: (
+    productId: string,
+    review: Omit<Review, 'id' | 'createdAt'>
+  ) => Promise<void>;
 }
 
 export const ProductContext = createContext<ProductContextType>({} as any);
@@ -33,13 +60,41 @@ export const useProductsContext = () => useContext(ProductContext);
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser } = useContext(AuthContext);
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchProducts = async () => {
     try {
-      const snap = await getDocs(collection(db, 'products'));
-      const data = snap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) } as Product));
+      const snapshot = await getDocs(collection(db, 'products'));
+      const data: Product[] = [];
+
+      for (const doc of snapshot.docs) {
+        const p = doc.data() as any;
+        // Obtener URL de imagen
+        const imgUrl = await getDownloadURL(storageRef(storage, p.imageUrl));
+        // Obtener reviews
+        const reviewsSnap = await getDocs(
+          query(
+            collection(db, 'products', doc.id, 'reviews'),
+            orderBy('createdAt', 'desc')
+          )
+        );
+        const reviews: Review[] = reviewsSnap.docs.map(r => ({ id: r.id, ...(r.data() as any) })) as Review[];
+
+        data.push({
+          id: doc.id,
+          title: p.title,
+          description: p.description,
+          category: p.category,
+          imageUrl: imgUrl,
+          price: p.price,
+          stock: p.stock,
+          vendorId: p.vendorId,
+          vendorName: p.vendorName,
+          createdAt: p.createdAt,
+          reviews,
+        });
+      }
       setProducts(data);
     } catch (err: any) {
       setError(err.message);
@@ -53,9 +108,8 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const addProduct = async ({ title, description, category, price, stock, imageUri }: any) => {
     if (!currentUser) throw new Error('Usuario no autenticado');
     let downloadUrl: string;
-    // Determinar si es URI local o URL remota
+    // Si URI local, subir; si no, usar tal cual
     if (imageUri.startsWith('file://')) {
-      // Leer local como base64
       const base64 = await FileSystem.readAsStringAsync(imageUri, {
         encoding: FileSystem.EncodingType.Base64,
       });
@@ -65,11 +119,9 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       await uploadBytes(imgRef, blob);
       downloadUrl = await getDownloadURL(imgRef);
     } else {
-      // Ya es URL remota, no subimos de nuevo
       downloadUrl = imageUri;
     }
 
-    // Guardar documento en Firestore
     await addDoc(collection(db, 'products'), {
       title,
       description,
@@ -84,9 +136,30 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     await fetchProducts();
   };
 
+  const addReview = async (
+    productId: string,
+    review: Omit<Review, 'id' | 'createdAt'>
+  ) => {
+    try {
+      const reviewsRef = collection(db, 'products', productId, 'reviews');
+      const docRef = await addDoc(reviewsRef, {
+        ...review,
+        createdAt: serverTimestamp(),
+      });
+      // Actualizar estado local
+      setProducts(prev => prev.map(prod => 
+        prod.id === productId
+          ? { ...prod, reviews: [{ ...review, id: docRef.id, createdAt: new Date() }, ...prod.reviews] }
+          : prod
+      ));
+    } catch (err) {
+      console.error('Error al añadir review:', err);
+    }
+  };
+
   return (
-    <ProductContext.Provider value={{ products, loading, error, addProduct }}>
+    <ProductContext.Provider value={{ products, loading, error, addProduct, addReview }}>
       {children}
     </ProductContext.Provider>
   );
-}
+};

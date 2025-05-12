@@ -57,7 +57,7 @@ export default function CameraModal(props: CameraModalProps) {
             const blob = await response.blob();
 
             // Crear una referencia en Firebase Storage
-            const filename = `photos/${Date.now()}.jpg`; // 🔹 Nombre único
+            const filename = `${Date.now()}.jpg`; // 🔹 Nombre único
             const storageRef = ref(storage, filename);
 
             // Subir la imagen
