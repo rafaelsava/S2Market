@@ -127,7 +127,7 @@ const DashboardVendor: React.FC = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionCard}
-          onPress={() => router.push('/')} // Replace with actual route
+          onPress={() => router.push('/vendedor/ManageOrders')} // Replace with actual route
         >
           <Icon name="clipboard-list-outline" size={24} />
           <View style={styles.actionInfo}>
