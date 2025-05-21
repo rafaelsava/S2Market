@@ -36,7 +36,7 @@ export default function OrderConfirmed() {
       </View>
         <TouchableOpacity
           style={[styles.continueButton]}
-          onPress={() => router.push("/")}
+          onPress={() => router.push("/comprador")}
         >
           <Text style={[styles.buttonText, styles.continueText]}>Continue Shopping</Text>
         </TouchableOpacity>

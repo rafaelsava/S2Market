@@ -88,8 +88,8 @@ const CartScreen = () => {
         style={styles.container}
         contentContainerStyle={{ paddingBottom: 120 }}
       >
-        <TouchableOpacity style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={28} color="#000" />
         </TouchableOpacity>
         <Text style={styles.title}>Carrito</Text>
 
@@ -223,9 +223,7 @@ const styles = StyleSheet.create({
   backButton: {
     position: "absolute",
     top: 16,
-    left: 16,
-    backgroundColor: "#eee",
-    borderRadius: 20,
+    left: 8,
     padding: 6,
     zIndex: 10,
   },

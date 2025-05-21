@@ -7,14 +7,16 @@ import { ProductProvider } from '../context/ProductContext';
 
 export default function RootLayout() {
   return (
+        <AuthProvider>
+
     <CartProvider>
-    <AuthProvider>
       <CurrencyProvider>
         <ProductProvider>
           <Slot />
         </ProductProvider>
       </CurrencyProvider>
-    </AuthProvider>
     </CartProvider>
+        </AuthProvider>
+
   );
 }

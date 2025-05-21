@@ -13,12 +13,13 @@ import { AuthContext } from "../context/AuthContext";
 
 export default function Sidebar({ onClose }: { onClose: () => void }) {
   const router = useRouter();
-  const { profile, logout } = useContext(AuthContext);
+  const { profile, logout,orderCount } = useContext(AuthContext);
+
 
   const userName = profile?.name || "Usuario";
   const userRole = profile?.role || "Invitado";
   const userPhoto = profile?.photoURL || "https://ui-avatars.com/api/?name=Usuario&background=6C63FF&color=fff&size=128";
-  const ordersCount = 3;
+  const ordersCount = orderCount || 0;
 
   return (
     <View style={styles.container}>
@@ -66,9 +67,9 @@ export default function Sidebar({ onClose }: { onClose: () => void }) {
             onPress={() => router.push("/favorites")}
           />
           <MenuItem
-            icon="settings-outline"
-            label="Configuración"
-            onPress={() => router.push("/settings")}
+            icon="cart-outline"
+            label="Carrito"
+            onPress={() => router.push("/comprador/carrito")}
           />
 
           {/* Logout */}

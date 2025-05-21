@@ -7,7 +7,7 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, query, setDoc, where } from "firebase/firestore";
 import { getDownloadURL, ref as storageRef, uploadBytes } from "firebase/storage";
 import { createContext, useEffect, useState } from "react";
 
@@ -25,6 +25,8 @@ interface UserProfile {
 interface AuthContextInterface {
   currentUser: FirebaseUser | null;
   profile: UserProfile | null;
+  orderCount: number;
+
   login: (email: string, password: string) => Promise<UserRole | null>;
   register: (user: {
     name: string;
@@ -43,30 +45,53 @@ export const AuthContext = createContext({} as AuthContextInterface);
 export const AuthProvider = ({ children }: any) => {
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [orderCount, setOrderCount] = useState(0);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
 
-      if (user) {
-        try {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            setProfile(userDoc.data() as UserProfile);
-          } else {
-            setProfile(null);
-          }
-        } catch (error) {
-          console.error("Error cargando perfil de usuario:", error);
+useEffect(() => {
+  let unsubscribeOrders: (() => void) | undefined;
+
+  const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+    setCurrentUser(user);
+
+    if (user) {
+      try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setProfile(userDoc.data() as UserProfile);
+        } else {
           setProfile(null);
         }
-      } else {
+      } catch (error) {
+        console.error("Error cargando perfil de usuario:", error);
         setProfile(null);
       }
-    });
-    return () => unsubscribe();
-  }, []);
+
+      // Listener en tiempo real para órdenes
+      try {
+        const ordersRef = collection(db, "orders");
+        const q = query(ordersRef, where("userId", "==", user.uid));
+
+        unsubscribeOrders = onSnapshot(q, (querySnapshot) => {
+          setOrderCount(querySnapshot.size);
+        });
+      } catch (error) {
+        console.error("Error obteniendo número de órdenes:", error);
+        setOrderCount(0);
+      }
+    } else {
+      setProfile(null);
+      setOrderCount(0);
+      if (unsubscribeOrders) unsubscribeOrders();
+    }
+  });
+
+  return () => {
+    unsubscribeAuth();
+    if (unsubscribeOrders) unsubscribeOrders();
+  };
+}, []);
 
   const login = async (email: string, password: string): Promise<UserRole | null> => {
     try {
@@ -167,6 +192,8 @@ export const AuthProvider = ({ children }: any) => {
     <AuthContext.Provider
       value={{
         currentUser,
+        orderCount,
+
         profile,
         login,
         register,
