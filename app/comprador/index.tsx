@@ -1,8 +1,11 @@
+import Sidebar from "@/components/SidebarComprador";
 import { AuthContext } from "@/context/AuthContext";
 import { ProductContext } from "@/context/ProductContext";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
+import Modal from "react-native-modal";
+
 
 import {
   FlatList,
@@ -37,10 +40,9 @@ const HomeScreen = () => {
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+
   const{currentUser} = useContext(AuthContext);
-
-  console.log("products", products);
-
 
 
     const filteredProducts = products.filter(product =>
@@ -50,11 +52,26 @@ const HomeScreen = () => {
 
 
   return (
+
+    
     <View style={styles.container}>
+
+    <Modal
+      isVisible={modalVisible}
+      animationIn="slideInLeft"
+      animationOut="slideOutLeft"
+      onBackdropPress={() => setModalVisible(false)}
+      style={{ margin: 0, justifyContent: "flex-start" }}
+    >
+      <View style={{ width: "75%", height: "100%", backgroundColor: "#fff" }}>
+        <Sidebar onClose={() => setModalVisible(false)} />
+      </View>
+    </Modal>
+
       {/* Encabezado fijo */}
       <View style={styles.headerContainer}>
         <View style={styles.header}>
-          <Ionicons name="menu" size={24} />
+          <Ionicons name="menu" size={24} onPress={() => setModalVisible(true)} />
           <View style={styles.avatar}>
             <Ionicons name="sparkles" size={24} color="#fff" />
           </View>

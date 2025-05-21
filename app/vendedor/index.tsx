@@ -4,10 +4,10 @@ import { getDownloadURL, ref as storageRef } from 'firebase/storage';
 import React, { useContext, useEffect, useState } from 'react';
 import { FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { OrderCard } from '../../components/OrderCard';
 import { AuthContext } from '../../context/AuthContext';
 import { useCurrency } from '../../context/CurrencyContext';
 import { db, storage } from '../../utils/FirebaseConfig';
-import { OrderCard } from './components/OrderCard';
 
 const DashboardVendor: React.FC = () => {
   const router = useRouter();

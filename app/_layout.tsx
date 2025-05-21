@@ -1,3 +1,4 @@
+import { CartProvider } from '@/context/CartContext';
 import { Slot } from 'expo-router';
 import React from 'react';
 import { AuthProvider } from '../context/AuthContext';
@@ -6,6 +7,7 @@ import { ProductProvider } from '../context/ProductContext';
 
 export default function RootLayout() {
   return (
+    <CartProvider>
     <AuthProvider>
       <CurrencyProvider>
         <ProductProvider>
@@ -13,5 +15,6 @@ export default function RootLayout() {
         </ProductProvider>
       </CurrencyProvider>
     </AuthProvider>
+    </CartProvider>
   );
 }

@@ -4,10 +4,12 @@ import { Stack } from "expo-router";
 
 export default function BuyerLayout() {
   return (
+
     <AuthProvider>
         <ProductProvider>
             <Stack screenOptions={{ headerShown: false }} />
         </ProductProvider>
     </AuthProvider>
+
   );
 }

@@ -1,9 +1,12 @@
+import { AuthContext } from '@/context/AuthContext'; // para obtener userId
+import { useCart } from '@/context/CartContext';
 import { useCurrency } from "@/context/CurrencyContext";
 import { ProductContext } from "@/context/ProductContext";
 import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useContext } from "react";
+import { Alert } from 'react-native';
 
 import {
   Image,
@@ -30,10 +33,22 @@ export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { products } = useContext(ProductContext);
+  const { addToCart ,cart} = useCart();
+  const { currentUser } = useContext(AuthContext);
+
+const handleAddToCart = () => {
+  if (!product || !currentUser) return;
+
+    addToCart(product.id, 1);
+    console.log(cart);
+
+    Alert.alert("Éxito", "Producto agregado al carrito");
+
+};
 
 
 
-  const product = products.find((p) => p.id === id);
+const product = products.find((p) => p.id === id);
 const { currency, setCurrency, rates, loading } = useCurrency();
 // Define the Currency type
 
@@ -41,7 +56,6 @@ const order:  ("COP" | "USD" | "EUR" | "MXN")[]= ["COP", "USD", "EUR", "MXN"];
 const conversionRate = rates?.[currency] ?? 1;
 const convertedPrice = (product: { price: number; }) => (product.price * conversionRate).toFixed(2);
 const firstReview = product?.reviews?.[0];
-console.log("First Review", firstReview);
 
 const handleChangeCurrency = () => {
   const index = order.indexOf(currency);
@@ -69,7 +83,7 @@ const handleChangeCurrency = () => {
         <Ionicons name="arrow-back" size={24} color="#000" />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.cartButton}>
+      <TouchableOpacity style={styles.cartButton} onPress={() => router.push("/comprador/carrito")}>
         <Ionicons name="cart" size={24} color="#000" />
       </TouchableOpacity>
 
@@ -151,7 +165,7 @@ const handleChangeCurrency = () => {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.addToCartButton}>
+      <TouchableOpacity onPress={handleAddToCart} style={styles.addToCartButton}>
         <Text style={styles.addToCartText}>Add to Cart</Text>
       </TouchableOpacity>
     </View>

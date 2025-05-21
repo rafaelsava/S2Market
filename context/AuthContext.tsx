@@ -13,8 +13,16 @@ import { createContext, useEffect, useState } from "react";
 // Solo dos roles permitidos
 type UserRole = "comprador" | "vendedor";
 
+interface UserProfile {
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt?: Date;
+}
+
 interface AuthContextInterface {
   currentUser: FirebaseUser | null;
+  profile: UserProfile | null;            // Nuevo estado con perfil
   login: (email: string, password: string) => Promise<UserRole | null>;
   register: (user: {
     name: string;
@@ -31,10 +39,28 @@ export const AuthContext = createContext({} as AuthContextInterface);
 
 export const AuthProvider = ({ children }: any) => {
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null); // Nuevo
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
+
+      if (user) {
+        try {
+          const userDocRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            setProfile(userDoc.data() as UserProfile);
+          } else {
+            setProfile(null);
+          }
+        } catch (error) {
+          console.error("Error cargando perfil de usuario:", error);
+          setProfile(null);
+        }
+      } else {
+        setProfile(null);
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -87,23 +113,29 @@ export const AuthProvider = ({ children }: any) => {
         await updateProfile(auth.currentUser, { displayName: user.name });
       }
       await setDoc(doc(db, "users", auth.currentUser.uid), user, { merge: true });
+
+      // Actualizar el perfil local también:
+      setProfile((prev) => (prev ? { ...prev, ...user } : prev));
     }
   };
 
   const updateRole = async (role: UserRole) => {
     if (auth.currentUser) {
       await setDoc(doc(db, "users", auth.currentUser.uid), { role }, { merge: true });
+      setProfile((prev) => (prev ? { ...prev, role } : prev));
     }
   };
 
   const logout = async () => {
     await signOut(auth);
+    setProfile(null);
   };
 
   return (
     <AuthContext.Provider
       value={{
         currentUser,
+        profile,
         login,
         register,
         updateUser,
