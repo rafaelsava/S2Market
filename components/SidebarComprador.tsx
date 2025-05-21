@@ -2,12 +2,12 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import React, { useContext } from "react";
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 
@@ -17,7 +17,7 @@ export default function Sidebar({ onClose }: { onClose: () => void }) {
 
   const userName = profile?.name || "Usuario";
   const userRole = profile?.role || "Invitado";
-  // Aquí podrías traer el número de órdenes desde un contexto o API real
+  const userPhoto = profile?.photoURL || "https://ui-avatars.com/api/?name=Usuario&background=6C63FF&color=fff&size=128";
   const ordersCount = 3;
 
   return (
@@ -32,9 +32,7 @@ export default function Sidebar({ onClose }: { onClose: () => void }) {
         <View style={styles.userInfo}>
           <Image
             source={{
-              uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                userName
-              )}&background=6C63FF&color=fff&size=128`,
+              uri: userPhoto,
             }}
             style={styles.avatar}
           />

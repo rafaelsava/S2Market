@@ -39,6 +39,7 @@ export interface Review {
   rating: number;
   comment: string;
   createdAt: any; // Timestamp
+  photoURL?: string; // URL de la foto del usuario
 }
 
 export interface Product {
@@ -139,7 +140,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // ===================== Añadir Review =====================
   const addReview = async (
     productId: string,
-    review: Omit<Review, "id" | "createdAt">
+    review: Omit<Review, "id" | "createdAt">,
   ) => {
     try {
       const refReviews = collection(db, "products", productId, "reviews");
@@ -174,7 +175,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const addProduct = async (
     product: Omit<Product, "id" | "reviews" | "createdAt">
   ): Promise<void> => {
-    try {
+    try { 
       const docRef = await addDoc(collection(db, "products"), {
         ...product,
         createdAt: serverTimestamp(),

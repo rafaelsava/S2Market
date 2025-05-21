@@ -1,9 +1,11 @@
+import CameraModal from "@/components/CameraModal";
 import { AuthContext } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
 import {
   Alert,
+  Image,
   StyleSheet,
   Text,
   TextInput,
@@ -21,6 +23,9 @@ const RegisterScreen = () => {
   const [secure, setSecure] = useState(true);
   const [role, setRole] = useState<"comprador" | "vendedor">("comprador");
 
+  const [photoURL, setPhotoURL] = useState<string | undefined>();
+  const [cameraVisible, setCameraVisible] = useState(false);
+
   const handleRegister = async () => {
     if (!name || !email || !password) {
       Alert.alert("Campos requeridos", "Por favor completa todos los campos.");
@@ -32,6 +37,7 @@ const RegisterScreen = () => {
       email,
       password,
       role,
+      photoURL,          // pasamos la URL
     });
 
     if (success) {
@@ -48,6 +54,25 @@ const RegisterScreen = () => {
       </TouchableOpacity>
 
       <Text style={styles.title}>Regístrate</Text>
+
+       {/* --- FOTO DE PERFIL --- */}
+      <View style={styles.photoSection}>
+        {photoURL ? (
+          <Image source={{ uri: photoURL }} style={styles.avatar} />
+        ) : (
+          <View style={styles.avatarPlaceholder}>
+            <Ionicons name="person" size={48} color="#aaa" />
+          </View>
+        )}
+        <TouchableOpacity
+          style={styles.photoButton}
+          onPress={() => setCameraVisible(true)}
+        >
+          <Text style={styles.photoButtonText}>
+            {photoURL ? "Cambiar foto" : "Tomar foto"}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       <Text style={styles.label}>Usuario</Text>
       <TextInput
@@ -121,7 +146,17 @@ const RegisterScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+
+
+
+      {/* --- CAMERA MODAL --- */}
+      <CameraModal
+        isVisible={cameraVisible}
+        onClose={() => setCameraVisible(false)}
+        onCapture={(url) => setPhotoURL(url)}
+      />
+
+            <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
         <Text style={styles.registerText}>Registrarse</Text>
       </TouchableOpacity>
     </View>
@@ -133,7 +168,7 @@ export default RegisterScreen;
 // Estilos (sin cambios)
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 60,
+    paddingTop: 70,
     flex: 1,
     padding: 24,
     backgroundColor: "#fff",
@@ -191,11 +226,34 @@ const styles = StyleSheet.create({
     backgroundColor: "#2E4098",
     paddingVertical: 12,
     borderRadius: 6,
+    position: "absolute",
+    left: 0,
+    bottom: 0,
+    right: 0,
+    height: 75,
+    justifyContent: "center",
     alignItems: "center",
   },
   registerText: {
     color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
+    fontWeight: "700",
+    fontSize: 18,
   },
+  photoSection: {
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  avatar: {
+    width: 100, height: 100, borderRadius: 50, marginBottom: 8,
+  },
+  avatarPlaceholder: {
+    width: 100, height: 100, borderRadius: 50,
+    backgroundColor: "#eee", alignItems: "center", justifyContent: "center",
+    marginBottom: 8,
+  },
+  photoButton: {
+    backgroundColor: "#2E4098", paddingVertical: 6, paddingHorizontal: 16,marginBottom: 40,
+    borderRadius: 6,
+  },
+  photoButtonText: { color: "#fff", fontWeight: "600" },
 });

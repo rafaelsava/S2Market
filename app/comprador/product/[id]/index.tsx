@@ -131,7 +131,7 @@ const handleChangeCurrency = () => {
 {firstReview ? (
   <View style={styles.reviewCard}>
     <Image
-      source={{ uri: "https://i.pravatar.cc/100?u=" + firstReview.userId }}
+      source={{ uri: firstReview.photoURL }}
       style={styles.avatar}
     />
     <View style={{ flex: 1 }}>

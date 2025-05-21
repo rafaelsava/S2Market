@@ -5,7 +5,6 @@ import React, { useContext, useState } from "react";
 import {
   Alert,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -19,7 +18,6 @@ const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [secure, setSecure] = useState(true);
-  const [rememberMe, setRememberMe] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -72,20 +70,16 @@ const LoginScreen = () => {
         <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
       </TouchableOpacity>
 
-      <View style={styles.rememberContainer}>
-        <Text style={styles.rememberText}>Recuérdame</Text>
-        <Switch value={rememberMe} onValueChange={setRememberMe} />
-      </View>
-
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginText}>Login</Text>
-      </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push("/auth/register")}>
         <Text style={styles.registerText}>
           ¿Aún no tienes cuenta?{" "}
           <Text style={{ color: "#4B55E1" }}>Regístrate</Text>
         </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+        <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
     </View>
   );
@@ -94,9 +88,10 @@ const LoginScreen = () => {
 export default LoginScreen;
 const styles = StyleSheet.create({
     container: {
-      paddingTop: 60,
+      paddingTop: 70,
       flex: 1,
       padding: 24,
+
       backgroundColor: "#fff",
     },
     backButton: {
@@ -110,13 +105,13 @@ const styles = StyleSheet.create({
     },
     subtitle: {
       color: "#999",
-      marginBottom: 24,
+      marginBottom: 170,
       textAlign: "center",
   
     },
     label: {
       fontWeight: "600",
-      marginBottom: 6,
+      marginBottom: 10,
     },
     input: {
       borderBottomWidth: 1,
@@ -124,14 +119,15 @@ const styles = StyleSheet.create({
       paddingVertical: 8,
       marginBottom: 16,
     },
-    passwordContainer: {
+      passwordContainer: {
       flexDirection: "row",
       alignItems: "center",
     },
     forgotText: {
+      marginTop: 10,
       alignSelf: "flex-end",
       color: "red",
-      marginBottom: 16,
+      marginBottom: 20,
     },
     rememberContainer: {
       flexDirection: "row",
@@ -145,14 +141,18 @@ const styles = StyleSheet.create({
     loginButton: {
       backgroundColor: "#2E4098",
       paddingVertical: 12,
+      bottom: 0,
+      position: "absolute",
+      left: 0,
+      height: 75,
+      right: 0,
       borderRadius: 6,
       alignItems: "center",
-      marginBottom: 20,
-    },
+      justifyContent: "center",},
     loginText: {
       color: "#fff",
-      fontWeight: "600",
-      fontSize: 16,
+      fontWeight: "700",
+      fontSize: 18,
     },
     registerText: {
       textAlign: "center",

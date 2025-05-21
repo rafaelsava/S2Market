@@ -5,16 +5,16 @@ import Slider from "@react-native-community/slider";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useContext, useState } from "react";
 import {
-    Alert,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 
 export default function AddReviewScreen() {
@@ -44,6 +44,7 @@ export default function AddReviewScreen() {
     try {
       await addReview(id as string, {
         userId: currentUser.uid,
+        photoURL: currentUser.photoURL || "https://i.pravatar.cc/100",
         name: currentUser.displayName || "Anónimo",
         rating,
         comment,
