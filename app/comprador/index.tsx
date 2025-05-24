@@ -1,13 +1,16 @@
 import Sidebar from "@/components/SidebarComprador";
 import { AuthContext } from "@/context/AuthContext";
-import { ProductContext } from "@/context/ProductContext";
+import { useFavorites } from "@/context/FavoritesContext";
+import { Product, ProductContext } from "@/context/ProductContext";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
 import Modal from "react-native-modal";
 
 
+
 import {
+  Alert,
   FlatList,
   Image,
   Keyboard,
@@ -36,19 +39,30 @@ const categories = [
 ];
 
 const HomeScreen = () => {
+  const router = useRouter();
+  const { currentUser } = useContext(AuthContext);
   const { products } = useContext(ProductContext);
+  const { isFavorite, toggleFavorite } = useFavorites();
+
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
-  const{currentUser} = useContext(AuthContext);
+  const filteredProducts = products.filter(
+    (p) =>
+      p.title.toLowerCase().includes(search.toLowerCase()) &&
+      (selectedCategory === "" || p.category === selectedCategory)
+  );
 
-
-    const filteredProducts = products.filter(product =>
-    product.title.toLowerCase().includes(search.toLowerCase()) &&
-    (selectedCategory === "" || product.category === selectedCategory)
+    const handleToggleFav = async (product: Product) => {
+    const currentlyFav = isFavorite(product.id);
+    await toggleFavorite(product);
+    Alert.alert(
+      currentlyFav ? "Favorito eliminado" : "Favorito agregado",
+      `"${product.title}" ${currentlyFav ? "ha sido removido de" : "se agregó a"} favoritos.`
     );
+  };
 
 
   return (
@@ -160,9 +174,22 @@ const HomeScreen = () => {
             onPress={() => router.push({ pathname: "../comprador/product/[id]", params: { id: item.id } })}
     >
             
+<View style={{ position: "relative" }}>
+              <Image source={{ uri: item.image }} style={styles.cardImage} />
 
-            <Image source={{ uri: item.image }} style={styles.cardImage} />
-            <Text numberOfLines={1} style={styles.cardTitle}>
+              {/* Icono de favorito */}
+              <TouchableOpacity
+                style={styles.favoriteIcon}
+                onPress={() => handleToggleFav(item)}
+              >
+                <Ionicons
+                  name={isFavorite(item.id) ? "heart" : "heart-outline"}
+                  size={24}
+                  color="#e74c3c"
+                />
+              </TouchableOpacity>
+            </View>
+               <Text numberOfLines={1} style={styles.cardTitle}>
               {item.title}
             </Text>
             <Text style={styles.cardPrice}>
@@ -266,5 +293,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#333",
     marginTop: 4,
+  },
+    favoriteIcon: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    borderRadius: 16,
+    padding: 4,
   },
 });

@@ -64,7 +64,7 @@ export default function Sidebar({ onClose }: { onClose: () => void }) {
           <MenuItem
             icon="heart-outline"
             label="Favoritos"
-            onPress={() => router.push("/favorites")}
+            onPress={() => router.push("/comprador/favoritos")}
           />
           <MenuItem
             icon="cart-outline"
@@ -76,7 +76,7 @@ export default function Sidebar({ onClose }: { onClose: () => void }) {
           <TouchableOpacity
             onPress={() => {
               logout();
-              router.replace("/login");
+              router.replace("../auth/");
             }}
             style={styles.logout}
           >
