@@ -1,11 +1,14 @@
 import { auth, db, storage } from "@/utils/FirebaseConfig";
 import {
   createUserWithEmailAndPassword,
+  EmailAuthProvider,
   User as FirebaseUser,
   onAuthStateChanged,
+  reauthenticateWithCredential,
   signInWithEmailAndPassword,
   signOut,
-  updateProfile,
+  updatePassword,
+  updateProfile
 } from "firebase/auth";
 import { collection, doc, getDoc, onSnapshot, query, setDoc, where } from "firebase/firestore";
 import { getDownloadURL, ref as storageRef, uploadBytes } from "firebase/storage";
@@ -38,6 +41,8 @@ interface AuthContextInterface {
   logout: () => Promise<void>;
   updateUser: (user: Partial<{ name: string; role: UserRole; photoFile: Blob }>) => Promise<void>;
   updateRole: (role: UserRole) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>; // 🚀
+
 }
 
 export const AuthContext = createContext({} as AuthContextInterface);
@@ -188,6 +193,22 @@ useEffect(() => {
     setProfile(null);
   };
 
+  // 🚀 Nueva función para cambiar contraseña
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    if (!auth.currentUser || !auth.currentUser.email) {
+      throw new Error("Usuario no autenticado.");
+    }
+    // 1) Re-autenticar con la contraseña actual
+    const credential = EmailAuthProvider.credential(
+      auth.currentUser.email,
+      currentPassword
+    );
+    await reauthenticateWithCredential(auth.currentUser, credential);
+
+    // 2) Actualizar a la nueva contraseña
+    await updatePassword(auth.currentUser, newPassword);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -200,6 +221,7 @@ useEffect(() => {
         updateUser,
         updateRole,
         logout,
+        changePassword
       }}
     >
       {children}

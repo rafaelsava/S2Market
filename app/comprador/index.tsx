@@ -2,18 +2,18 @@ import Sidebar from "@/components/SidebarComprador";
 import { AuthContext } from "@/context/AuthContext";
 import { useFavorites } from "@/context/FavoritesContext";
 import { Product, ProductContext } from "@/context/ProductContext";
+import { useGeminiSearch } from "@/hooks/useGeminiSearch";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
 import Modal from "react-native-modal";
 
-
-
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Image,
-  Keyboard,
+  Keyboard, // 🚀
   ScrollView,
   StyleSheet,
   Text,
@@ -23,6 +23,7 @@ import {
 } from "react-native";
 
 const router = useRouter();
+
 
 
 const categories = [
@@ -44,16 +45,30 @@ const HomeScreen = () => {
   const { products } = useContext(ProductContext);
   const { isFavorite, toggleFavorite } = useFavorites();
 
+  
+  const { getKeywords, loading: aiLoading } = useGeminiSearch(); // 🚀
+  const [aiKeywords, setAiKeywords] = useState<string[]>([]);    // 🚀
+
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
-  const filteredProducts = products.filter(
-    (p) =>
-      p.title.toLowerCase().includes(search.toLowerCase()) &&
-      (selectedCategory === "" || p.category === selectedCategory)
-  );
+ // 🚀 Nuevo filtrado que usa aiKeywords si las hay, sino usa el search normal
+  const filteredProducts = products.filter((p) => {
+    const matchesText = aiKeywords.length > 0
+      ? aiKeywords.some((k) =>
+          p.title.toLowerCase().includes(k.toLowerCase()) ||
+          p.description.toLowerCase().includes(k.toLowerCase())
+        )
+      : p.title.toLowerCase().includes(search.toLowerCase());
+
+    const matchesCategory =
+      selectedCategory === "" || p.category === selectedCategory;
+
+    return matchesText && matchesCategory;
+  });
+
 
     const handleToggleFav = async (product: Product) => {
     const currentlyFav = isFavorite(product.id);
@@ -64,6 +79,24 @@ const HomeScreen = () => {
     );
   };
 
+  // 🚀 Lógica para invocar Gemini cuando tocan el ✨
+  const handleAISearch = async () => {
+    if (!query.trim()) {
+      return Alert.alert("Ingresa texto", "Describe lo que buscas.");
+    }
+    try {
+      const keywords = await getKeywords(query);
+      if (keywords.length === 0) {
+        return Alert.alert("Sin resultados", "La IA no devolvió palabras clave.");
+      }
+      setAiKeywords(keywords);
+      setSearch("");  // opcional: limpia el search manual
+      Alert.alert("Palabras clave", keywords.join(", "));
+    } catch (e) {
+      console.error(e);
+      Alert.alert("Error IA", "No se pudo obtener palabras clave.");
+    }
+  };
 
   return (
 
@@ -86,9 +119,18 @@ const HomeScreen = () => {
       <View style={styles.headerContainer}>
         <View style={styles.header}>
           <Ionicons name="menu" size={24} onPress={() => setModalVisible(true)} />
-          <View style={styles.avatar}>
-            <Ionicons name="sparkles" size={24} color="#fff" />
-          </View>
+{/* 🚀 Botón IA */}
+          <TouchableOpacity
+            style={styles.avatar}
+            onPress={handleAISearch}
+            disabled={aiLoading}
+          >
+            {aiLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Ionicons name="sparkles" size={24} color="#fff" />
+            )}
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.greeting}>Hola, {currentUser?.displayName?.split(" ")[0]} </Text>
@@ -104,6 +146,7 @@ const HomeScreen = () => {
             returnKeyType="search"
             onSubmitEditing={() => {
               setSearch(query);
+              setAiKeywords([]);         // 🚀 desactiva búsqueda IA
               Keyboard.dismiss();
             }}
           />
@@ -111,9 +154,7 @@ const HomeScreen = () => {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Filtra por Categoría</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAll}>Ver Todo</Text>
-          </TouchableOpacity>
+
         </View>
 
         <ScrollView
@@ -151,9 +192,6 @@ const HomeScreen = () => {
         {/* Título Productos fijo */}
         <View style={[styles.sectionHeader, { marginTop: 0, paddingTop: 10,marginBottom: 20 }]}>
           <Text style={styles.sectionTitle}>Productos</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAll}>Ver Todo</Text>
-          </TouchableOpacity>
         </View>
       </View>
 

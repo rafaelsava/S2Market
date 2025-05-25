@@ -49,12 +49,12 @@ export default function Sidebar({ onClose }: { onClose: () => void }) {
           <MenuItem
             icon="information-circle-outline"
             label="Información de la cuenta"
-            onPress={() => router.push("/account-info")}
+            onPress={() => router.push("../auth/updateprofile")}
           />
           <MenuItem
             icon="lock-closed-outline"
             label="Contraseña"
-            onPress={() => router.push("/change-password")}
+            onPress={() => router.push("../auth/change-password")}
           />
           <MenuItem
             icon="bag-outline"
