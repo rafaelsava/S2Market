@@ -63,7 +63,7 @@ export default function SidebarVendedor({ onClose }: { onClose: () => void }) {
           <MenuItem
             icon="cube-outline"
             label="Productos"
-            onPress={() => router.push("/vendedor/Products")}
+            onPress={() => router.push("/vendedor/ManageProducts")}
           />
 
           {/* Logout */}
