@@ -1,4 +1,11 @@
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+// context/CartContext.tsx
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import React, { createContext, useContext, useState } from "react";
 import { db } from "../utils/FirebaseConfig";
 
@@ -50,7 +57,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const [cart, setCart] = useState<CartItem[]>([]);
 
   const addToCart = (productId: string, quantity: number = 1) => {
-    console.log("Adding to cart", productId, quantity);
     setCart((prev) => {
       const exist = prev.find((item) => item.productId === productId);
       if (exist) {
@@ -101,9 +107,23 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   ) => {
     if (cart.length === 0) throw new Error("El carrito está vacío");
 
+    // Enriquecer cada ítem con su sellerId
+    const itemsWithSellers = await Promise.all(
+      cart.map(async (item) => {
+        const prodRef = doc(db, "products", item.productId);
+        const prodSnap = await getDoc(prodRef);
+        const prodData = prodSnap.data() as any;
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          sellerId: prodData.sellerId,
+        };
+      })
+    );
+
     const orderData = {
       userId,
-      items: cart,
+      items: itemsWithSellers,
       meetingPoint,
       paymentMethod,
       status: "pendiente",
