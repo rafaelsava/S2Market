@@ -151,36 +151,50 @@ useEffect(() => {
     }
   };
 
-  const updateUser = async (user: Partial<{ name: string; role: UserRole; photoFile: Blob }>) => {
-    if (!auth.currentUser) return;
+  // ... dentro de AuthProvider
 
-    // Si cambia nombre o foto en Auth
-    const updates: Record<string, any> = {};
-    if (user.name) {
-      updates.displayName = user.name;
-    }
-    if (user.photoFile) {
-      // Subir nueva foto
-      const imgRef = storageRef(storage, `avatars/${auth.currentUser.uid}`);
-      await uploadBytes(imgRef, user.photoFile);
-      const newURL = await getDownloadURL(imgRef);
-      updates.photoURL = newURL;
-      // Reflejar en perfil local
-      setProfile(prev => prev ? { ...prev, photoURL: newURL } : prev);
-    }
-    if (Object.keys(updates).length) {
-      await updateProfile(auth.currentUser, updates);
-    }
+const updateUser = async (user: Partial<{ name: string; role: UserRole; photoFile: Blob }>) => {
+  if (!auth.currentUser) return;
 
-    // Actualizar Firestore
-    const firestoreUpdates: Record<string, any> = {};
-    if (user.name) firestoreUpdates.name = user.name;
-    if (user.role) firestoreUpdates.role = user.role;
-    await setDoc(doc(db, "users", auth.currentUser.uid), firestoreUpdates, { merge: true });
+  // 1) Prepara actualizaciones de Auth
+  const authUpdates: Record<string, any> = {};
+  if (user.name) {
+    authUpdates.displayName = user.name;
+  }
 
-    // Reflejar cambios de nombre/rol en perfil local
-    setProfile(prev => prev ? { ...prev, ...firestoreUpdates } : prev);
-  };
+  let newPhotoURL: string | undefined;
+  if (user.photoFile) {
+    // Subir nueva foto
+    const imgRef = storageRef(storage, `avatars/${auth.currentUser.uid}`);
+    await uploadBytes(imgRef, user.photoFile);
+    newPhotoURL = await getDownloadURL(imgRef);
+    authUpdates.photoURL = newPhotoURL;
+  }
+
+  // 2) Actualiza perfil en Firebase Auth
+  if (Object.keys(authUpdates).length) {
+    await updateProfile(auth.currentUser, authUpdates);
+  }
+
+  // 3) Prepara actualizaciones de Firestore
+  const firestoreUpdates: Record<string, any> = {};
+  if (user.name)      firestoreUpdates.name     = user.name;
+  if (user.role)      firestoreUpdates.role     = user.role;
+  if (newPhotoURL)    firestoreUpdates.photoURL = newPhotoURL;
+
+  // 4) Escribe en Firestore (merge)
+  if (Object.keys(firestoreUpdates).length) {
+    await setDoc(
+      doc(db, "users", auth.currentUser.uid),
+      firestoreUpdates,
+      { merge: true }
+    );
+  }
+
+  // 5) Refleja cambios localmente
+  setProfile(prev => prev ? { ...prev, ...firestoreUpdates } : prev);
+};
+
 
   const updateRole = async (role: UserRole) => {
     if (!auth.currentUser) return;
