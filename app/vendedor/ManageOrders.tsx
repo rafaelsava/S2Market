@@ -89,7 +89,7 @@ export default function ManageOrders() {
     <TouchableWithoutFeedback onPress={()=>{ setShowStatusDropdown(false); setShowQuantityDropdown(false); }}>
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={()=>router.back()}><Icon name="arrow-left" size={28}/></TouchableOpacity>
+        <TouchableOpacity onPress={()=>router.push('/vendedor')}><Icon name="arrow-left" size={28}/></TouchableOpacity>
         <Text style={styles.title}>Gestión de Pedidos</Text>
       </View>
       <TextInput style={styles.search} placeholder="Buscar Pedidos..." value={search} onChangeText={setSearch}/>
