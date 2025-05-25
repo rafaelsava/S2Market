@@ -1,8 +1,10 @@
+import SidebarVendedor from '@/components/sidebarVendedor';
 import { useRouter } from 'expo-router';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { getDownloadURL, ref as storageRef } from 'firebase/storage';
 import React, { useContext, useEffect, useState } from 'react';
 import { FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { OrderCard } from '../../components/OrderCard';
 import { AuthContext } from '../../context/AuthContext';
@@ -18,6 +20,7 @@ const DashboardVendor: React.FC = () => {
   const [productsCount, setProductsCount] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
   const [salesTotal, setSalesTotal] = useState(0);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -71,7 +74,9 @@ const DashboardVendor: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Icon name="menu" size={28} />
+        <TouchableOpacity onPress={() => setSidebarVisible(true)}>
+          <Icon name="menu" size={28} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Dashboard</Text>
       </View>
       <Text style={styles.subtitle}>Observa tu resumen de ventas</Text>
@@ -127,7 +132,7 @@ const DashboardVendor: React.FC = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionCard}
-          onPress={() => router.push('/vendedor/ManageOrders')} // Replace with actual route
+          onPress={() => router.push('/vendedor/ManageOrders')}
         >
           <Icon name="clipboard-list-outline" size={24} />
           <View style={styles.actionInfo}>
@@ -144,6 +149,22 @@ const DashboardVendor: React.FC = () => {
         <Icon name="shopping-outline" size={28} />
         <Icon name="account-outline" size={28} />
       </View>
+
+      {/* Sidebar Modal */}
+      <Modal
+        isVisible={sidebarVisible}
+        animationIn="slideInLeft"
+        animationOut="slideOutLeft"
+        backdropOpacity={0.5}
+        animationInTiming={300}
+        animationOutTiming={300}
+        onBackdropPress={() => setSidebarVisible(false)}
+        style={styles.modal}
+      >
+        <View style={styles.sidebarWrapper}>
+          <SidebarVendedor onClose={() => setSidebarVisible(false)} />
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -236,6 +257,15 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#eee',
     marginTop: 'auto',
+  },
+  modal: {
+    margin: 0,
+    justifyContent: 'flex-start',
+  },
+  sidebarWrapper: {
+    width: '80%',
+    height: '100%',
+    backgroundColor: '#fff',
   },
 });
 

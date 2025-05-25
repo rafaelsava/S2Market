@@ -1,4 +1,5 @@
 import { Picker } from '@react-native-picker/picker';
+import { useRouter } from 'expo-router';
 import React, { useContext, useState } from 'react';
 import {
   Alert,
@@ -26,9 +27,11 @@ const categories: Category[] = [
   'Arte',
   'Musica',
   'Alimentos',
-  'Otros'
+  'Otros'
 ];
+
 const AddProduct: React.FC = () => {
+  const router = useRouter();
   const { addProduct } = useProducts();
   const { currentUser } = useContext(AuthContext);
   const [title, setTitle] = useState('');
@@ -40,9 +43,6 @@ const AddProduct: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleSave = async () => {
-
-    console.log("🧪 Imagen URI capturada:", imageUri); // 👈
-
     if (!title || !description || !price || !stock || !imageUri) {
       return Alert.alert('Error', 'Todos los campos son obligatorios');
     }
@@ -56,11 +56,13 @@ const AddProduct: React.FC = () => {
         category,
         price: parseFloat(price),
         stock: parseInt(stock, 10),
-        image: imageUri, // ya es downloadURL
+        image: imageUri,
         sellerId: currentUser.uid,
       });
 
-      Alert.alert('Éxito', 'Producto agregado');
+      Alert.alert('Éxito', 'Producto agregado', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
     } catch (e: any) {
       Alert.alert('Error', e.message);
     }
@@ -69,13 +71,18 @@ const AddProduct: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.form}>
-        <TouchableOpacity onPress={() => history.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Icon name="arrow-left" size={28} />
         </TouchableOpacity>
         <Text style={styles.header}>Nuevo Producto</Text>
 
         <Text style={styles.label}>Nombre</Text>
-        <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Ej: Brownies" />
+        <TextInput
+          style={styles.input}
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Ej: Brownies"
+        />
 
         <Text style={styles.label}>Descripción</Text>
         <TextInput
@@ -89,16 +96,22 @@ const AddProduct: React.FC = () => {
         <Text style={styles.label}>Categoría</Text>
         <View style={styles.pickerBox}>
           <Picker selectedValue={category} onValueChange={setCategory}>
-            {categories.map(c => <Picker.Item key={c} label={c} value={c} />)}
+            {categories.map(c => (
+              <Picker.Item key={c} label={c} value={c} />
+            ))}
           </Picker>
         </View>
 
         <Text style={styles.label}>Imagen</Text>
         <TouchableOpacity style={styles.imageBox} onPress={() => setModalVisible(true)}>
-          {imageUri
-            ? <Image source={{ uri: imageUri }} style={styles.image} />
-            : <View style={styles.placeholder}><Icon name="camera" size={32} /><Text>Capturar/Seleccionar</Text></View>
-          }
+          {imageUri ? (
+            <Image source={{ uri: imageUri }} style={styles.image} />
+          ) : (
+            <View style={styles.placeholder}>
+              <Icon name="camera" size={32} />
+              <Text>Capturar/Seleccionar</Text>
+            </View>
+          )}
         </TouchableOpacity>
 
         <View style={styles.row}>
@@ -139,6 +152,7 @@ const AddProduct: React.FC = () => {
 };
 
 export default AddProduct;
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   form: { padding: 16 },
