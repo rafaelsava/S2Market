@@ -3,14 +3,14 @@ import { useRouter } from 'expo-router';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../context/AuthContext';
@@ -124,11 +124,19 @@ export default function ManageOrders() {
         </View>
       </View>
 
-      <FlatList data={sorted} keyExtractor={i=>i.id} renderItem={({item})=>(
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.orderId}>Pedido de {item.customerName}</Text>
-            <Text style={styles.badge}>{item.status}</Text>
+            <FlatList data={sorted} keyExtractor={i=>i.id} renderItem={({item})=>(
+              <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <Text style={styles.orderId}>Pedido de {item.customerName}</Text>
+                  <Text
+        style={[
+          styles.badge,
+          item.status === 'entregado' && styles.badgeEntregado
+        ]}
+      >
+        {item.status}
+      </Text>
+
           </View>
           <Text style={styles.date}>{item.date.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})} - {item.date.toLocaleTimeString('es-CO',{hour:'numeric',minute:'2-digit'})}</Text>
           <View style={styles.summary}>
@@ -156,6 +164,9 @@ const styles = StyleSheet.create({
   controlText:{fontSize:16},
   dropdown:{position:'absolute',top:48,left:0,right:0,backgroundColor:'#fff',borderWidth:1,borderColor:'#ccc',borderRadius:8,zIndex:10},
   option:{padding:12},
+    badgeEntregado: {
+    backgroundColor: '#D1FAE5'   // verde
+  },
   optionText:{fontSize:16},
   card:{backgroundColor:'#fff',padding:12,borderRadius:8,marginBottom:12,elevation:2},
   cardHeader:{flexDirection:'row',justifyContent:'space-between'},

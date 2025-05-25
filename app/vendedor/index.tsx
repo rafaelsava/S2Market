@@ -176,7 +176,7 @@ export default function DashboardVendor() {
           <Text style={styles.statLabel}>Productos</Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: '#D1FAE5' }]}>
-          <Icon name="bag-check-outline" size={24} color="#10B981" />
+          <Icon name="cart-outline" size={24} color="#10B981" />
           <Text style={styles.statNumber}>{pendingCount}</Text>
           <Text style={styles.statLabel}>Pendientes</Text>
         </View>

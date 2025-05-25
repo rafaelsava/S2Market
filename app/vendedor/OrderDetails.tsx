@@ -5,12 +5,12 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { getDownloadURL, ref as storageRef } from 'firebase/storage';
 import React, { useContext, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../context/AuthContext';
@@ -176,7 +176,7 @@ export default function OrderDetails() {
       {/* Seguimiento */}
       <Text style={styles.sectionTitle}>Seguimiento</Text>
       <View style={styles.trackCard}>
-        <Icon name="checkmark-circle" size={24} color="#2ecc71" />
+        <Icon name="check" size={24} color="#2ecc71" />
         <View style={{ marginLeft: 8 }}>
           <Text style={styles.trackTitle}>Pedido acordado</Text>
           <Text style={styles.trackDate}>{dateStr}</Text>
