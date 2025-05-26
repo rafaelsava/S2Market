@@ -25,6 +25,7 @@ import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../context/AuthContext';
 import { useCurrency } from '../../context/CurrencyContext';
+import { useOrderNotifications } from '../../hooks/useOrderNotifications';
 import { db, storage } from '../../utils/FirebaseConfig';
 
 interface OrderItem {
@@ -48,6 +49,7 @@ interface VendorOrder {
 }
 
 export default function DashboardVendor() {
+  useOrderNotifications();
   const router = useRouter();
   const { currentUser } = useContext(AuthContext);
   const { currency, rates, loading: currencyLoading } = useCurrency();
