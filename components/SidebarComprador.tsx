@@ -59,7 +59,7 @@ export default function Sidebar({ onClose }: { onClose: () => void }) {
           <MenuItem
             icon="bag-outline"
             label="Órdenes"
-            onPress={() => router.push("/comprador/misordenes")}
+            onPress={() => router.push("../comprador/misordenes")}
           />
           <MenuItem
             icon="heart-outline"

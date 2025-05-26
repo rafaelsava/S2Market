@@ -1,3 +1,4 @@
+import { registerPushTokenLocally } from "@/hooks/notifications";
 import { router } from "expo-router";
 import { useEffect } from "react";
 import { Text, View } from "react-native";
@@ -6,9 +7,16 @@ export default function Index() {
 
 
   useEffect(() => {
-    setTimeout(() => {
-      router.push("/auth");
-    }, 2000);
+    (async () => {
+      try {
+        await registerPushTokenLocally();
+        console.log("Token registrado localmente");
+      } catch (e) {
+        console.warn("Error registrando token:", e);
+      } finally {
+        router.push("/auth");
+      }
+    })();
   }, []);
 
 

@@ -27,7 +27,7 @@ const LoginScreen = () => {
 
     const role = await login(email, password);
     if (role) {
-      router.replace(`../${role}/`); // Ruta a la home
+      router.replace(`../auth/showtoken`); // Ruta a la home
     } else {
       Alert.alert("Error", "Correo o contraseña incorrectos.");
     }
