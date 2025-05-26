@@ -155,6 +155,15 @@ const { orders, loading, error } = useMyOrders();
                 <Text style={styles.price}>{item.priceFormatted}</Text>
                 <Text style={styles.qty}>{item.totalQuantity} productos</Text>
               </View>
+
+                     <TouchableOpacity
+         style={styles.detailsBtn}
+         onPress={() =>
+           router.push(`/comprador/detallesorden?orderId=${item.id}`)
+         }
+       >
+         <Text style={styles.detailsText}>Ver Detalles</Text>
+       </TouchableOpacity>
             </View>
           )}
         />
