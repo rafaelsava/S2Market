@@ -4,61 +4,75 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
 import {
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
-const RegisterScreen = () => {
+const ProfileScreen = () => {
   const router = useRouter();
-  const { register } = useContext(AuthContext);
+  const { profile, updateUser } = useContext(AuthContext);
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [secure, setSecure] = useState(true);
-  const [role, setRole] = useState<"comprador" | "vendedor">("comprador");
-
-  const [photoURL, setPhotoURL] = useState<string | undefined>();
+  const [name, setName] = useState(profile?.name ?? "");
+  const [role, setRole] = useState<"comprador" | "vendedor">(
+    profile?.role ?? "comprador"
+  );
+  const [photoUri, setPhotoUri] = useState<string | undefined>(
+    profile?.photoURL
+  );
   const [cameraVisible, setCameraVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = async () => {
-    if (!name || !email || !password) {
-      Alert.alert("Campos requeridos", "Por favor completa todos los campos.");
-      return;
+  const handleSave = async () => {
+    if (!name) {
+      return Alert.alert("Campo requerido", "El nombre no puede quedar vacío.");
     }
 
-    const success = await register({
-      name,
-      email,
-      password,
-      role,
-      photoURL,          // pasamos la URL
-    });
+    setLoading(true);
+    try {
+      let photoFile;
+      if (photoUri && photoUri !== profile?.photoURL) {
+        // convertimos URI a Blob para updateUser
+        const resp = await fetch(photoUri);
+        photoFile = await resp.blob();
+      }
 
-    if (success) {
-      router.replace("/auth"); // Ajusta si tienes tabs u otra navegación
-    } else {
-      Alert.alert("Error", "No se pudo registrar el usuario.");
+      await updateUser({
+        name,
+        role,
+        ...(photoFile ? { photoFile } : {}),
+      });
+
+      Alert.alert("¡Listo!", "Perfil actualizado correctamente.", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+    } catch (e: any) {
+      console.error(e);
+      Alert.alert("Error", e.message || "No se pudo guardar los cambios.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
         <Ionicons name="arrow-back" size={24} color="#000" />
       </TouchableOpacity>
 
-      <Text style={styles.title}>Regístrate</Text>
+      <Text style={styles.title}>Mi perfil</Text>
 
-       {/* --- FOTO DE PERFIL --- */}
+      {/* --- FOTO DE PERFIL --- */}
       <View style={styles.photoSection}>
-        {photoURL ? (
-          <Image source={{ uri: photoURL }} style={styles.avatar} />
+        {photoUri ? (
+          <Image source={{ uri: photoUri }} style={styles.avatar} />
         ) : (
           <View style={styles.avatarPlaceholder}>
             <Ionicons name="person" size={48} color="#aaa" />
@@ -69,45 +83,21 @@ const RegisterScreen = () => {
           onPress={() => setCameraVisible(true)}
         >
           <Text style={styles.photoButtonText}>
-            {photoURL ? "Cambiar foto" : "Tomar foto"}
+            {photoUri ? "Cambiar foto" : "Tomar foto"}
           </Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.label}>Usuario</Text>
+      {/* Nombre */}
+      <Text style={styles.label}>Nombre</Text>
       <TextInput
         style={styles.input}
-        placeholder="Nombre completo"
+        placeholder="Tu nombre"
         value={name}
         onChangeText={setName}
       />
 
-      
-      <Text style={styles.label}>Email</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Correo electrónico"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      <Text style={styles.label}>Contraseña</Text>
-      <View style={styles.passwordContainer}>
-        <TextInput
-          style={[styles.input, { flex: 1 }]}
-          placeholder="Contraseña"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={secure}
-        />
-        <TouchableOpacity onPress={() => setSecure(!secure)}>
-          <Ionicons name={secure ? "eye-off" : "eye"} size={20} color="#333" />
-        </TouchableOpacity>
-      </View>
-
-
+      {/* Rol */}
       <View style={styles.roleContainer}>
         <TouchableOpacity
           style={[
@@ -130,7 +120,9 @@ const RegisterScreen = () => {
         <TouchableOpacity
           style={[
             styles.roleButton,
-            role === "comprador" ? styles.roleSelected : styles.roleUnselected,
+            role === "comprador"
+              ? styles.roleSelected
+              : styles.roleUnselected,
           ]}
           onPress={() => setRole("comprador")}
         >
@@ -146,26 +138,32 @@ const RegisterScreen = () => {
         </TouchableOpacity>
       </View>
 
-
-
-
-      {/* --- CAMERA MODAL --- */}
+      {/* Modal de cámara */}
       <CameraModal
         isVisible={cameraVisible}
         onClose={() => setCameraVisible(false)}
-        onCapture={(url) => setPhotoURL(url)}
+        onCapture={(url) => {
+          setPhotoUri(url);
+          setCameraVisible(false);
+        }}
       />
 
-            <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-        <Text style={styles.registerText}>Registrarse</Text>
+      {/* Botón Guardar */}
+      <TouchableOpacity
+        style={[styles.registerButton, loading && { opacity: 0.7 }]}
+        onPress={handleSave}
+        disabled={loading}
+      >
+        <Text style={styles.registerText}>
+          {loading ? "Guardando..." : "Guardar cambios"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
 };
 
-export default RegisterScreen;
+export default ProfileScreen;
 
-// Estilos (sin cambios)
 const styles = StyleSheet.create({
   container: {
     paddingTop: 70,
@@ -182,6 +180,36 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     textAlign: "center",
   },
+  photoSection: {
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 8,
+  },
+  avatarPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#eee",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  photoButton: {
+    backgroundColor: "#2E4098",
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    marginBottom: 32,
+    borderRadius: 6,
+  },
+  photoButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
   label: {
     fontWeight: "600",
     marginBottom: 6,
@@ -191,10 +219,6 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     paddingVertical: 8,
     marginBottom: 16,
-  },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
   },
   roleContainer: {
     flexDirection: "row",
@@ -224,7 +248,7 @@ const styles = StyleSheet.create({
   },
   registerButton: {
     backgroundColor: "#2E4098",
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 6,
     position: "absolute",
     left: 0,
@@ -239,21 +263,4 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 18,
   },
-  photoSection: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  avatar: {
-    width: 100, height: 100, borderRadius: 50, marginBottom: 8,
-  },
-  avatarPlaceholder: {
-    width: 100, height: 100, borderRadius: 50,
-    backgroundColor: "#eee", alignItems: "center", justifyContent: "center",
-    marginBottom: 8,
-  },
-  photoButton: {
-    backgroundColor: "#2E4098", paddingVertical: 6, paddingHorizontal: 16,marginBottom: 40,
-    borderRadius: 6,
-  },
-  photoButtonText: { color: "#fff", fontWeight: "600" },
 });

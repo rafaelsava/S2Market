@@ -18,6 +18,7 @@ interface Review {
   rating: number;
   createdAt: Date; // ajusta si es Timestamp de Firestore
   comment: string;
+  photoURL?: string; // URL de la foto del usuario
 }
 
 export default function AllReviewsScreen() {
@@ -48,7 +49,7 @@ const renderStars = (rating: number) => {
   const renderReview = ({ item }: { item: Review }) => (
     <View style={styles.reviewCard}>
       <Image
-        source={{ uri: `https://i.pravatar.cc/100?u=${item.userId}` }}
+        source={{ uri: item.photoURL || "https://i.pravatar.cc/100" }}
         style={styles.avatar}
       />
       <View style={styles.reviewContent}>

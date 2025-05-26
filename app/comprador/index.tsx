@@ -1,13 +1,19 @@
+import Sidebar from "@/components/SidebarComprador";
 import { AuthContext } from "@/context/AuthContext";
-import { ProductContext } from "@/context/ProductContext";
+import { useFavorites } from "@/context/FavoritesContext";
+import { Product, ProductContext } from "@/context/ProductContext";
+import { useGeminiSearch } from "@/hooks/useGeminiSearch";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
+import Modal from "react-native-modal";
 
 import {
+  ActivityIndicator,
+  Alert,
   FlatList,
   Image,
-  Keyboard,
+  Keyboard, // 🚀
   ScrollView,
   StyleSheet,
   Text,
@@ -17,6 +23,7 @@ import {
 } from "react-native";
 
 const router = useRouter();
+
 
 
 const categories = [
@@ -33,31 +40,97 @@ const categories = [
 ];
 
 const HomeScreen = () => {
+  const router = useRouter();
+  const { currentUser } = useContext(AuthContext);
   const { products } = useContext(ProductContext);
+  const { isFavorite, toggleFavorite } = useFavorites();
+
+  
+  const { getKeywords, loading: aiLoading } = useGeminiSearch(); // 🚀
+  const [aiKeywords, setAiKeywords] = useState<string[]>([]);    // 🚀
+
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const{currentUser} = useContext(AuthContext);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  console.log("products", products);
+ // 🚀 Nuevo filtrado que usa aiKeywords si las hay, sino usa el search normal
+  const filteredProducts = products.filter((p) => {
+    const matchesText = aiKeywords.length > 0
+      ? aiKeywords.some((k) =>
+          p.title.toLowerCase().includes(k.toLowerCase()) ||
+          p.description.toLowerCase().includes(k.toLowerCase())
+        )
+      : p.title.toLowerCase().includes(search.toLowerCase());
+
+    const matchesCategory =
+      selectedCategory === "" || p.category === selectedCategory;
+
+    return matchesText && matchesCategory;
+  });
 
 
-
-    const filteredProducts = products.filter(product =>
-    product.title.toLowerCase().includes(search.toLowerCase()) &&
-    (selectedCategory === "" || product.category === selectedCategory)
+    const handleToggleFav = async (product: Product) => {
+    const currentlyFav = isFavorite(product.id);
+    await toggleFavorite(product);
+    Alert.alert(
+      currentlyFav ? "Favorito eliminado" : "Favorito agregado",
+      `"${product.title}" ${currentlyFav ? "ha sido removido de" : "se agregó a"} favoritos.`
     );
+  };
 
+  // 🚀 Lógica para invocar Gemini cuando tocan el ✨
+  const handleAISearch = async () => {
+    if (!query.trim()) {
+      return Alert.alert("Ingresa texto", "Describe lo que buscas.");
+    }
+    try {
+      const keywords = await getKeywords(query);
+      if (keywords.length === 0) {
+        return Alert.alert("Sin resultados", "La IA no devolvió palabras clave.");
+      }
+      setAiKeywords(keywords);
+      setSearch("");  // opcional: limpia el search manual
+      Alert.alert("Palabras clave", keywords.join(", "));
+    } catch (e) {
+      console.error(e);
+      Alert.alert("Error IA", "No se pudo obtener palabras clave.");
+    }
+  };
 
   return (
+
+    
     <View style={styles.container}>
+
+    <Modal
+      isVisible={modalVisible}
+      animationIn="slideInLeft"
+      animationOut="slideOutLeft"
+      onBackdropPress={() => setModalVisible(false)}
+      style={{ margin: 0, justifyContent: "flex-start" }}
+    >
+      <View style={{ width: "75%", height: "100%", backgroundColor: "#fff" }}>
+        <Sidebar onClose={() => setModalVisible(false)} />
+      </View>
+    </Modal>
+
       {/* Encabezado fijo */}
       <View style={styles.headerContainer}>
         <View style={styles.header}>
-          <Ionicons name="menu" size={24} />
-          <View style={styles.avatar}>
-            <Ionicons name="sparkles" size={24} color="#fff" />
-          </View>
+          <Ionicons name="menu" size={24} onPress={() => setModalVisible(true)} />
+{/* 🚀 Botón IA */}
+          <TouchableOpacity
+            style={styles.avatar}
+            onPress={handleAISearch}
+            disabled={aiLoading}
+          >
+            {aiLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Ionicons name="sparkles" size={24} color="#fff" />
+            )}
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.greeting}>Hola, {currentUser?.displayName?.split(" ")[0]} </Text>
@@ -73,6 +146,7 @@ const HomeScreen = () => {
             returnKeyType="search"
             onSubmitEditing={() => {
               setSearch(query);
+              setAiKeywords([]);         // 🚀 desactiva búsqueda IA
               Keyboard.dismiss();
             }}
           />
@@ -80,9 +154,7 @@ const HomeScreen = () => {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Filtra por Categoría</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAll}>Ver Todo</Text>
-          </TouchableOpacity>
+
         </View>
 
         <ScrollView
@@ -120,9 +192,6 @@ const HomeScreen = () => {
         {/* Título Productos fijo */}
         <View style={[styles.sectionHeader, { marginTop: 0, paddingTop: 10,marginBottom: 20 }]}>
           <Text style={styles.sectionTitle}>Productos</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAll}>Ver Todo</Text>
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -143,9 +212,22 @@ const HomeScreen = () => {
             onPress={() => router.push({ pathname: "../comprador/product/[id]", params: { id: item.id } })}
     >
             
+<View style={{ position: "relative" }}>
+              <Image source={{ uri: item.image }} style={styles.cardImage} />
 
-            <Image source={{ uri: item.image }} style={styles.cardImage} />
-            <Text numberOfLines={1} style={styles.cardTitle}>
+              {/* Icono de favorito */}
+              <TouchableOpacity
+                style={styles.favoriteIcon}
+                onPress={() => handleToggleFav(item)}
+              >
+                <Ionicons
+                  name={isFavorite(item.id) ? "heart" : "heart-outline"}
+                  size={24}
+                  color="#e74c3c"
+                />
+              </TouchableOpacity>
+            </View>
+               <Text numberOfLines={1} style={styles.cardTitle}>
               {item.title}
             </Text>
             <Text style={styles.cardPrice}>
@@ -249,5 +331,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#333",
     marginTop: 4,
+  },
+    favoriteIcon: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    borderRadius: 16,
+    padding: 4,
   },
 });

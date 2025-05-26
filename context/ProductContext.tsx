@@ -1,10 +1,15 @@
+// context/ProductContext.tsx
+
 import {
   addDoc,
   collection,
+  deleteDoc,
+  doc,
   getDocs,
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 import {
   getDownloadURL,
@@ -39,6 +44,7 @@ export interface Review {
   rating: number;
   comment: string;
   createdAt: any; // Timestamp
+  photoURL?: string; // URL de la foto del usuario
 }
 
 export interface Product {
@@ -58,8 +64,20 @@ interface ProductContextType {
   products: Product[];
   loading: boolean;
   error: string | null;
-  addReview: (productId: string, review: Omit<Review, "id" | "createdAt">) => Promise<void>;
-  addProduct: (product: Omit<Product, "id" | "reviews" | "createdAt">) => Promise<void>;
+  addReview: (
+    productId: string,
+    review: Omit<Review, "id" | "createdAt">
+  ) => Promise<void>;
+  addProduct: (
+    product: Omit<Product, "id" | "reviews" | "createdAt">
+  ) => Promise<void>;
+  /** Elimina un producto por su ID */
+  deleteProduct: (productId: string) => Promise<void>;
+  /** Actualiza título, precio y/o stock de un producto */
+  updateProduct: (
+    productId: string,
+    updates: Partial<Pick<Product, "title" | "price" | "stock">>
+  ) => Promise<void>;
 }
 
 // ===================== Contexto =====================
@@ -70,11 +88,15 @@ export const ProductContext = createContext<ProductContextType>({
   error: null,
   addReview: async () => {},
   addProduct: async () => {},
+  deleteProduct: async () => {},
+  updateProduct: async () => {},
 });
 
 export const useProducts = () => useContext(ProductContext);
 
-export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -86,15 +108,17 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       for (const doc of querySnapshot.docs) {
         const data = doc.data();
-        const imageRef = ref(storage, data.image);
         let imageUrl = "";
         if (data.image) {
           try {
             const imageRef = ref(storage, data.image);
             imageUrl = await getDownloadURL(imageRef);
           } catch (error) {
-            console.warn(`No se pudo obtener URL de imagen para ${doc.id}:`, error);
-            imageUrl = ""; // o una imagen por defecto si prefieres
+            console.warn(
+              `No se pudo obtener URL de imagen para ${doc.id}:`,
+              error
+            );
+            imageUrl = "";
           }
         }
 
@@ -157,7 +181,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
                   {
                     ...review,
                     id: docRef.id,
-                    createdAt: new Date(), // temporal
+                    createdAt: new Date(),
                   },
                   ...product.reviews,
                 ],
@@ -185,7 +209,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
           ...product,
           id: docRef.id,
           reviews: [],
-          createdAt: new Date(), // temporal
+          createdAt: new Date(),
         },
         ...prev,
       ]);
@@ -194,9 +218,45 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // ===================== Eliminar Producto =====================
+  const deleteProduct = async (productId: string) => {
+    try {
+      await deleteDoc(doc(db, "products", productId));
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+    } catch (err) {
+      console.error("Error al eliminar producto:", err);
+    }
+  };
+
+  // ===================== Actualizar Producto =====================
+  const updateProduct = async (
+    productId: string,
+    updates: Partial<Pick<Product, "title" | "price" | "stock">>
+  ) => {
+    try {
+      const prodRef = doc(db, "products", productId);
+      await updateDoc(prodRef, updates);
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === productId ? { ...p, ...updates } : p
+        )
+      );
+    } catch (err) {
+      console.error("Error al actualizar producto:", err);
+    }
+  };
+
   return (
     <ProductContext.Provider
-      value={{ products, loading, error, addReview, addProduct }}
+      value={{
+        products,
+        loading,
+        error,
+        addReview,
+        addProduct,
+        deleteProduct,
+        updateProduct,
+      }}
     >
       {children}
     </ProductContext.Provider>
