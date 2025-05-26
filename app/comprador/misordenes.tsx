@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   qty: { color: '#555' },
   detailsBtn: {
     marginTop: 12,
-    backgroundColor: '#6c63ff',
+    backgroundColor: '#2E4098',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 6,

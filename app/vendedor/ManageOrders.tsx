@@ -176,6 +176,6 @@ const styles = StyleSheet.create({
   summary:{flexDirection:'row',justifyContent:'space-between',marginTop:8},
   price:{fontWeight:'bold'},
   qty:{color:'#555'},
-  detailsBtn:{marginTop:12,backgroundColor:'#6c63ff',paddingVertical:6,paddingHorizontal:12,borderRadius:6,alignSelf:'flex-end'},
+  detailsBtn:{marginTop:12,backgroundColor:'#2E4098',paddingVertical:6,paddingHorizontal:12,borderRadius:6,alignSelf:'flex-end'},
   detailsText:{color:'#fff'},
 });
