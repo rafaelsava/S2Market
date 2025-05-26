@@ -3,16 +3,16 @@
 import { useRouter } from "expo-router";
 import React, { useContext, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Image,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Modal from "react-native-modal";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -67,22 +67,6 @@ export default function ManageProducts() {
     );
   }
 
-  const confirmDelete = (id: string) => {
-    Alert.alert(
-      "Eliminar producto",
-      "¿Estás seguro de borrar este producto?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: () => deleteProduct(id).catch(e =>
-            Alert.alert("Error", e.message)
-          ),
-        },
-      ]
-    );
-  };
 
   const openEditModal = (product: Product) => {
     setProductToEdit(product);
@@ -127,12 +111,6 @@ export default function ManageProducts() {
           onPress={() => openEditModal(item)}
         >
           <Icon name="pencil-outline" size={20} color="#FFF" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.btnDelete}
-          onPress={() => confirmDelete(item.id)}
-        >
-          <Icon name="delete-outline" size={20} color="#FFF" />
         </TouchableOpacity>
       </View>
     </View>
