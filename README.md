@@ -1,50 +1,99 @@
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# 📱 S2Market
 
-## Get started
+El marketplace inteligente para estudiantes universitarios, optimizado con IA.
 
-1. Install dependencies
 
-   ```bash
-   npm install
-   ```
+## 🧠 Descripción
 
-2. Start the app
+**S2Market** es una aplicación móvil diseñada para estudiantes que desean vender o comprar productos dentro del entorno universitario. Impulsada por inteligencia artificial, permite realizar búsquedas optimizadas por texto, facilitando el descubrimiento de productos de manera rápida y precisa.
 
-   ```bash
-   npx expo start
-   ```
+Esta app fue desarrollada y validada inicialmente con estudiantes de la **Universidad de La Sabana**.
 
-In the output, you'll find options to open the app in a
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🚀 Características principales
 
-## Get a fresh project
+- 🔍 **Búsqueda por texto con IA**
+- 💡 **Recomendaciones de publicación** para vendedores según demanda
+- 💰 **Consulta en tiempo real de cambio de moneda** (vía API externa)
+- ❤️ **Favoritos accesibles sin conexión**
+- 📸 **Publicación rápida** con cámara o selección de galería
+- 📍 **Ubicaciones estratégicas** predefinidas para entrega dentro del campus
+- 🔔 **Notificaciones** sobre cambios de estado, nuevas órdenes y más
 
-When you're ready, run:
+
+
+## 🛠️ Tecnologías usadas
+
+- **Frontend:** React Native con Expo (TypeScript)
+- **Backend:** Firebase (Authentication, Firestore, Storage)
+- **IA:** Gemini API para procesamiento de texto
+- **APIs externas:** API de tipo de cambio (ExchangeRate API)
+- **Notificaciones:** Expo Notifications
+
+
+
+## 📦 Instalación
 
 ```bash
-npm run reset-project
+git clone https://github.com/rafaelsava/S2Market.git
+cd S2Market
+npm install
+npx expo start
+````
+
+*Asegúrate de tener Expo CLI instalado y las variables necesarias en el archivo `.env`.*
+
+
+
+## 📁 Estructura del Proyecto
+
+```bash
+.
+├── app/            # Navegación y rutas (Expo Router)
+├── assets/         # Recursos estáticos
+├── components/     # Componentes reutilizables
+├── context/        # Contextos globales (Auth, Productos, Órdenes, etc.)
+├── hooks/          # Custom Hooks
+├── images/         # Imágenes organizadas
+├── utils/          # Utilidades y configuraciones comunes
+├── .env            # Variables de entorno (ignorado por git)
+├── app.json        # Configuración Expo
+├── README.md       # Este archivo
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-## Learn more
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🧩 Modelo de Negocio
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+S2Market ofrece un entorno seguro y ordenado para estudiantes que desean comercializar productos. Su monetización futura puede incluir:
 
-## Join the community
+* Comisiones por transacción
+* Destacar productos dentro del feed
+* Servicios premium para vendedores
 
-Join our community of developers creating universal apps.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## 📖 Wiki del Proyecto
+
+Consulta la sección **Wiki** del repositorio para más información detallada sobre:
+
+* ✏️ **Definición del proyecto**
+* ✅ **Criterios de éxito**
+* 👤 **Historias de Usuario**: Vendedor / Comprador
+* 📋 **Requerimientos funcionales y no funcionales**
+* 🚧 **Limitaciones**
+* ⚠️ **Riesgos del Proyecto y Estrategias de Mitigación**
+
+🔗 [Ir a la Wiki del Proyecto](https://github.com/rafaelsava/S2Market/wiki)
+
+
+
+## 👨‍💻 Autores
+
+* Rafael Salcedo
+  [GitHub](https://github.com/rafaelsava)
+* Fermin Escalona
+  [GitHub](https://github.com/ferminescalona)
+
