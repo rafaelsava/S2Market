@@ -2,14 +2,14 @@ import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../context/AuthContext';
@@ -21,7 +21,7 @@ export default function MyOrdersScreen() {
   const router = useRouter();
   const { currentUser } = useContext(AuthContext);
   const { currency, rates, loading: curLoading } = useCurrency();
-  const { orders, loading, fetchOrders } = useMyOrders();
+const { orders, loading, error } = useMyOrders();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'Todos' | 'pendiente' | 'en camino' | 'entregado'>('Todos');
@@ -34,12 +34,6 @@ export default function MyOrdersScreen() {
     { label: 'En camino', value: 'en camino' },
     { label: 'Entregado', value: 'entregado' },
   ];
-
-  useEffect(() => {
-    if (currentUser) fetchOrders(currentUser.uid);
-    console.log('Fetching orders for user:', currentUser?.uid);
-    console.log('Orders fetched:', orders);
-  }, [currentUser]);
 
   useEffect(() => {
     const enrich = async () => {
@@ -77,6 +71,13 @@ export default function MyOrdersScreen() {
   });
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" />;
+
+    if (error)
+   return (
+      <View style={styles.container}>
+        <Text style={{ color: "red" }}>Error: {error}</Text>
+      </View>
+    );
 
   return (
     <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>

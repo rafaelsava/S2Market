@@ -1,8 +1,18 @@
-import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
-import React, { createContext, useContext, useState } from "react";
+// context/MyOrdersContext.tsx
+import * as Notifications from "expo-notifications";
+import {
+  collection,
+  FirestoreError,
+  onSnapshot,
+  orderBy,
+  query,
+  where,
+} from "firebase/firestore";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { db } from "../utils/FirebaseConfig";
+import { AuthContext } from "./AuthContext";
 
-interface OrderItem {
+export interface OrderItem {
   productId: string;
   quantity: number;
 }
@@ -21,14 +31,12 @@ interface MyOrdersContextType {
   orders: Order[];
   loading: boolean;
   error: string | null;
-  fetchOrders: (userId: string) => Promise<void>;
 }
 
 const MyOrdersContext = createContext<MyOrdersContextType>({
   orders: [],
-  loading: false,
+  loading: true,
   error: null,
-  fetchOrders: async () => {},
 });
 
 export const useMyOrders = () => useContext(MyOrdersContext);
@@ -36,38 +44,65 @@ export const useMyOrders = () => useContext(MyOrdersContext);
 export const MyOrdersProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const { currentUser } = useContext(AuthContext);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchOrders = async (userId: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const q = query(
-        collection(db, "orders"),
-        where("userId", "==", userId),
-        orderBy("createdAt", "desc")
-      );
-      const querySnapshot = await getDocs(q);
-
-      const ordersData: Order[] = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...(doc.data() as Omit<Order, "id">),
-      }));
-
-      setOrders(ordersData);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
+  useEffect(() => {
+    if (!currentUser?.uid) {
+      setOrders([]);
       setLoading(false);
+      return;
     }
-  };
+
+    setLoading(true);
+    const q = query(
+      collection(db, "orders"),
+      where("userId", "==", currentUser.uid),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setLoading(false);
+        const data = snap.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as Omit<Order, "id">),
+        }));
+        setOrders(data);
+
+        // Para cada cambio, si es modification, disparar notificación local
+        snap.docChanges().forEach(async (change) => {
+          if (change.type === "modified") {
+            const updated = change.doc.data() as Order;
+            try {
+              await Notifications.scheduleNotificationAsync({
+                content: {
+                  title: "Orden actualizada",
+                  body: `Tu pedido ${change.doc.id.slice(0,6)}… ahora está "${updated.status}"`,
+                  data: { orderId: change.doc.id },
+                },
+                trigger: null, // inmediata
+              });
+            } catch (e) {
+              console.error("Error notificando cambio de orden:", e);
+            }
+          }
+        });
+      },
+      (err: FirestoreError) => {
+        setLoading(false);
+        setError(err.message);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [currentUser?.uid]);
 
   return (
-    <MyOrdersContext.Provider
-      value={{ orders, loading, error, fetchOrders }}
-    >
+    <MyOrdersContext.Provider value={{ orders, loading, error }}>
       {children}
     </MyOrdersContext.Provider>
   );
