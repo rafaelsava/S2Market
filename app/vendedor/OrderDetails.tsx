@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   updateBtn: {
-    backgroundColor: '#6c63ff',
+    backgroundColor: '#2E4098',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center'

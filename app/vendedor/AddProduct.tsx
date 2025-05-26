@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", justifyContent: "space-between" },
   half: { width: "48%" },
   saveBtn: {
-    backgroundColor: "#3b82f6",
+    backgroundColor: "#2E4098",
     padding: 16,
     borderRadius: 8,
     alignItems: "center",

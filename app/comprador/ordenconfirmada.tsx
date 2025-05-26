@@ -28,7 +28,7 @@ export default function OrderConfirmed() {
 
         <TouchableOpacity
           style={styles.button}
-          //onPress={() => router.push("/orders")}
+          onPress={() => router.push("../comprador/misordenes")} // Ruta a las órdenes del comprador
         >
           <Text style={styles.buttonText}>Ir a órdenes</Text>
         </TouchableOpacity>
