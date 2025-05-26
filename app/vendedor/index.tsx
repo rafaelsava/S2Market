@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginHorizontal: 4
   },
-  statNumber: { fontSize: 15, fontWeight: 'bold', marginTop: 8 },
+  statNumber: { fontSize: 12, fontWeight: 'bold', marginTop: 8 },
   statLabel: { color: '#555', marginTop: 4 },
   sectionHeader: {
     flexDirection: 'row',
